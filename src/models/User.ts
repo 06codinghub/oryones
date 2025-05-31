@@ -78,13 +78,44 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  verifications: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Verification',
+  }],
+  communities: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Community',
+  }],
+  courses: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+  }],
+  enrolledCourses: [{
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Course',
+    },
+    progress: Number,
+    completedLessons: [String],
+  }],
+  stripeCustomerId: String,
+  stripeAccountId: String,
+  subscriptionStatus: {
+    type: String,
+    enum: ['none', 'active', 'cancelled'],
+    default: 'none',
+  },
+  subscriptionTier: {
+    type: String,
+    enum: ['free', 'basic', 'premium'],
+    default: 'free',
+  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-// Hash password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     next();
@@ -93,9 +124,8 @@ userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Method to check if password matches
 userSchema.methods.matchPassword = async function (enteredPassword: string) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-export default mongoose.models.User || mongoose.model('User', userSchema); 
+export default mongoose.models.User || mongoose.model('User', userSchema);
